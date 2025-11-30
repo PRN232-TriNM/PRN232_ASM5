@@ -1,0 +1,20 @@
+{
+  "profiles": {
+    "Android Emulator": {
+      "commandName": "Project",
+      "targetFramework": "net8.0-android",
+      "applicationUrl": "http://localhost:5000",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    },
+    "Android Physical Device": {
+      "commandName": "Project",
+      "targetFramework": "net8.0-android",
+      "applicationUrl": "http://localhost:5000",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    }
+  }
+}

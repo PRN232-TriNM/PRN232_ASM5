@@ -1,0 +1,335 @@
+﻿@page "/"
+@using System.Text
+@using EVCS.BusinessOjects.Shared.Models.trinm.Models
+@using Microsoft.Maui.Devices
+@using EVCS.BlazorMauiApp.TriNM.Services
+
+<EditForm Model="@StationVM" OnValidSubmit="OcelotSubmit" OnInvalidSubmit="HandleInvalidSubmit">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="mb-3">
+                <label>Station Name <span class="text-danger">*</span></label>
+                <InputText class="form-control" @bind-Value="StationVM.StationTriNMName" />
+                <ValidationMessage For="@(() => StationVM.StationTriNMName)" />
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="mb-3">
+                <label>Address <span class="text-danger">*</span></label>
+                <InputText class="form-control" @bind-Value="StationVM.Address" />
+                <ValidationMessage For="@(() => StationVM.Address)" />
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="mb-3">
+                <label>Owner <span class="text-danger">*</span></label>
+                <InputText class="form-control" @bind-Value="StationVM.Owner" />
+                <ValidationMessage For="@(() => StationVM.Owner)" />
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="mb-3">
+                <label>Capacity <span class="text-danger">*</span></label>
+                <InputNumber class="form-control" @bind-Value="StationVM.Capacity" />
+                <ValidationMessage For="@(() => StationVM.Capacity)" />
+                <small class="form-text text-muted">Must be between 1 and 1000</small>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="form-check mb-3">
+                <InputCheckbox class="form-check-input" @bind-Value="StationVM.IsActive" />
+                <label class="form-check-label">Is Active</label>
+            </div>
+        </div>
+    </div>
+
+    <hr class="my-4" />
+    <h5>Contact Information (Optional)</h5>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="mb-3">
+                <label>Contact Phone</label>
+                <InputText class="form-control" @bind-Value="StationVM.ContactPhone" type="tel" placeholder="e.g., +84 123 456 789" />
+                <ValidationMessage For="@(() => StationVM.ContactPhone)" />
+                <small class="form-text text-muted">Optional - Must be valid phone format if provided</small>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="mb-3">
+                <label>Contact Email</label>
+                <InputText class="form-control" @bind-Value="StationVM.ContactEmail" type="email" placeholder="e.g., owner@example.com" />
+                <ValidationMessage For="@(() => StationVM.ContactEmail)" />
+                <small class="form-text text-muted">Optional - Must be valid email format if provided</small>
+            </div>
+        </div>
+    </div>
+
+    <hr class="my-4" />
+    <h5>Charger Information</h5>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="mb-3">
+                <label>Charger Type <span class="text-danger">*</span></label>
+                <InputText class="form-control" @bind-Value="ChargerVM.ChargerTriNMType" placeholder="e.g., Type 2, CCS, CHAdeMO" />
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="form-check mb-3">
+                <InputCheckbox class="form-check-input" @bind-Value="ChargerVM.IsAvailable" />
+                <label class="form-check-label">Is Available</label>
+            </div>
+        </div>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Submit Station + Charger</button>
+    <span class="text-danger ms-3">@Message</span>
+</EditForm>
+
+@if (Stations.Count > 0)
+{
+    <div class="mt-4">
+        <h5>Submitted Stations (@Stations.Count)</h5>
+        <table class="table table-striped table-bordered">
+            <thead class="table-primary">
+                <tr>
+                    <th>ID</th>
+                    <th>Code</th>
+                    <th>Name</th>
+                    <th>Address</th>
+                    <th>Owner</th>
+                    <th>Capacity</th>
+                    <th>Active</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Stations)
+                {
+                    <tr>
+                        <td>@(item?.StationTriNMId ?? 0)</td>
+                        <td>@(item?.StationTriNMCode ?? "")</td>
+                        <td>@(item?.StationTriNMName ?? "")</td>
+                        <td>@(item?.Address ?? "")</td>
+                        <td>@(item?.Owner ?? "")</td>
+                        <td>@(item?.Capacity ?? 0)</td>
+                        <td>@(item?.IsActive == true ? "Yes" : "No")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+@code {
+    public StationTriNM StationVM { get; set; } = new();
+    public ChargerTriNM ChargerVM { get; set; } = new();
+    public List<StationTriNM> Stations { get; set; } = new();
+    public string Message { get; set; } = string.Empty;
+
+    private Random _random = new Random();
+
+    protected override void OnInitialized()
+    {
+        try
+        {
+            base.OnInitialized();
+            
+            if (StationVM == null)
+            {
+                StationVM = new StationTriNM();
+            }
+            if (ChargerVM == null)
+            {
+                ChargerVM = new ChargerTriNM();
+            }
+            
+            GenerateRandomCode();
+            
+            if (StationVM.Capacity < 1)
+            {
+                StationVM.Capacity = 10;
+            }
+            
+            if (string.IsNullOrWhiteSpace(StationVM.ContactPhone))
+            {
+                StationVM.ContactPhone = null;
+            }
+            if (string.IsNullOrWhiteSpace(StationVM.ContactEmail))
+            {
+                StationVM.ContactEmail = null;
+            }
+        }
+        catch (Exception ex)
+        {
+            Message = $"Initialization Error: {ex.Message}";
+        }
+    }
+
+    private void GenerateRandomCode()
+    {
+        var timestamp = DateTime.Now.ToString("yyyyMMddHHmmss");
+        var random = _random.Next(1000, 9999);
+        StationVM.StationTriNMCode = $"STN-{timestamp}-{random}";
+    }
+
+    protected void HandleInvalidSubmit()
+    {
+        Message = "Form validation failed. Please check required fields.";
+        System.Diagnostics.Debug.WriteLine("Form validation failed!");
+    }
+
+    protected async Task OcelotSubmit()
+    {
+        Message = "";
+        System.Diagnostics.Debug.WriteLine("OcelotSubmit called - Starting submit process...");
+        
+        try
+        {
+            if (StationVM == null)
+            {
+                Message = "Error: StationVM is null";
+                return;
+            }
+
+            GenerateRandomCode();
+
+            if (StationVM.CreatedDate == default)
+            {
+                StationVM.CreatedDate = DateTime.Now;
+            }
+
+            StationVM.City = StationVM.City ?? "Ho Chi Minh";
+            StationVM.Province = StationVM.Province ?? "Ho Chi Minh";
+            
+            if (StationVM.Capacity < 1)
+            {
+                StationVM.Capacity = 10;
+            }
+            
+            StationVM.CurrentAvailable = StationVM.CurrentAvailable == 0 ? 5 : StationVM.CurrentAvailable;
+            StationVM.Description = StationVM.Description ?? "Auto-generated station";
+            StationVM.ImageURL = StationVM.ImageURL ?? "";
+            StationVM.ContactPhone = string.IsNullOrWhiteSpace(StationVM.ContactPhone) ? null : StationVM.ContactPhone.Trim();
+            StationVM.ContactEmail = string.IsNullOrWhiteSpace(StationVM.ContactEmail) ? null : StationVM.ContactEmail.Trim();
+
+            System.Diagnostics.Debug.WriteLine($"Preparing to submit Station: Code={StationVM.StationTriNMCode}, Name={StationVM.StationTriNMName}");
+
+            HttpClientHandler handler = new HttpClientHandler();
+            handler.ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => { return true; };
+
+            using (var httpClient = new HttpClient(handler))
+            {
+                httpClient.Timeout = TimeSpan.FromSeconds(30);
+                
+                var stationContent = System.Text.Json.JsonSerializer.Serialize(StationVM);
+                System.Diagnostics.Debug.WriteLine($"Serialized Station content length: {stationContent.Length} bytes");
+
+                var stationApiUrl = ApiConfig.GetStationApiUrl();
+                System.Diagnostics.Debug.WriteLine($"Calling Station API: {stationApiUrl}");
+
+                var stationResponse = await httpClient.PostAsync(stationApiUrl, new StringContent(stationContent, Encoding.UTF8, "application/json"));
+                System.Diagnostics.Debug.WriteLine($"Station Response received: Status={stationResponse.StatusCode}");
+
+                if (stationResponse.StatusCode == System.Net.HttpStatusCode.OK)
+                {
+                    var stationResponseContent = await stationResponse.Content.ReadAsStringAsync();
+                    System.Diagnostics.Debug.WriteLine($"Station Response: {stationResponseContent}");
+
+                    int? stationId = null;
+                    try
+                    {
+                        using var doc = System.Text.Json.JsonDocument.Parse(stationResponseContent);
+                        if (doc.RootElement.TryGetProperty("StationTriNMId", out var idElement))
+                        {
+                            stationId = idElement.GetInt32();
+                        }
+                        else if (doc.RootElement.TryGetProperty("Data", out var dataElement) && dataElement.TryGetProperty("StationTriNMId", out var dataIdElement))
+                        {
+                            stationId = dataIdElement.GetInt32();
+                        }
+                    }
+                    catch
+                    {
+                        stationId = StationVM.StationTriNMId > 0 ? StationVM.StationTriNMId : null;
+                    }
+
+                    if (!stationId.HasValue || stationId.Value <= 0)
+                    {
+                        System.Diagnostics.Debug.WriteLine("Could not get StationId from response, using default StationId = 1");
+                        stationId = 1;
+                    }
+
+                    if (stationId.HasValue && stationId.Value > 0)
+                    {
+                        ChargerVM.StationTriNMId = stationId.Value;
+                        ChargerVM.ChargerTriNMType = ChargerVM.ChargerTriNMType ?? "Type 2";
+                        ChargerVM.ImageURL = ChargerVM.ImageURL ?? "";
+
+                        var chargerContent = System.Text.Json.JsonSerializer.Serialize(ChargerVM);
+                        System.Diagnostics.Debug.WriteLine($"Serialized Charger content: {chargerContent}");
+
+                        var chargerApiUrl = ApiConfig.GetChargerApiUrl();
+                        System.Diagnostics.Debug.WriteLine($"Calling Charger API: {chargerApiUrl}");
+
+                        var chargerResponse = await httpClient.PostAsync(chargerApiUrl, new StringContent(chargerContent, Encoding.UTF8, "application/json"));
+                        System.Diagnostics.Debug.WriteLine($"Charger Response received: Status={chargerResponse.StatusCode}");
+
+                        if (chargerResponse.StatusCode == System.Net.HttpStatusCode.OK)
+                        {
+                            Message = $"Success! Station (ID: {stationId}) + Charger submitted!";
+                            
+                            var newStation = new StationTriNM
+                            {
+                                StationTriNMId = stationId.Value,
+                                StationTriNMCode = StationVM.StationTriNMCode,
+                                StationTriNMName = StationVM.StationTriNMName,
+                                Address = StationVM.Address,
+                                Owner = StationVM.Owner,
+                                Capacity = StationVM.Capacity,
+                                IsActive = StationVM.IsActive
+                            };
+                            Stations.Add(newStation);
+                        }
+                        else
+                        {
+                            var chargerErrorContent = await chargerResponse.Content.ReadAsStringAsync();
+                            Message = $"Station created (ID: {stationId}) but Charger failed: {chargerResponse.StatusCode}\n{chargerErrorContent}";
+                        }
+                    }
+                }
+                else
+                {
+                    var errorContent = await stationResponse.Content.ReadAsStringAsync();
+                    Message = $"Station submit failed: {stationResponse.StatusCode}\n{errorContent}";
+                }
+            }
+        }
+        catch (HttpRequestException ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"HttpRequestException: {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"Stack trace: {ex.StackTrace}");
+            Message = $"Network Error: {ex.Message}\n\nPlease check:\n- Ocelot Gateway is running\n- Network connection\n- IP address in ApiConfig.cs";
+        }
+        catch (TaskCanceledException ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"TaskCanceledException (Timeout): {ex.Message}");
+            Message = $"Timeout Error: Request took too long\n{ex.Message}";
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Exception: {ex.GetType().Name} - {ex.Message}");
+            System.Diagnostics.Debug.WriteLine($"Stack trace: {ex.StackTrace}");
+            Message = $"Error: {ex.Message}\n\nType: {ex.GetType().Name}";
+        }
+    }
+}

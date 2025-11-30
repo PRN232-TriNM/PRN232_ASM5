@@ -1,0 +1,11 @@
+<Project>
+  <!-- Override Hot Reload settings to completely disable it -->
+  <PropertyGroup>
+    <UseHotReload>false</UseHotReload>
+    <EnableHotReload>false</EnableHotReload>
+    <MauiEnableHotReload>false</MauiEnableHotReload>
+    <MauiHotReloadEnabled>false</MauiHotReloadEnabled>
+    <AndroidDeployAfterBuild>false</AndroidDeployAfterBuild>
+  </PropertyGroup>
+</Project>
+

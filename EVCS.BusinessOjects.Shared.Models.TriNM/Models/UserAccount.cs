@@ -1,0 +1,37 @@
+using System;
+using System.Collections.Generic;
+
+namespace EVCS.BusinessOjects.Shared.Models.trinm.Models
+{
+    public partial class UserAccount
+    {
+        public int UserAccountId { get; set; }
+
+        public string UserName { get; set; }
+
+        public string PasswordHash { get; set; }
+
+        public string FullName { get; set; }
+
+        public string Email { get; set; }
+
+        public string Phone { get; set; }
+
+        public string EmployeeCode { get; set; }
+
+        public int RoleId { get; set; }
+
+        public DateTime? CreatedDate { get; set; }
+
+        public DateTime? ModifiedDate { get; set; }
+
+        public bool IsActive { get; set; }
+
+        public string GoogleId { get; set; }
+
+        public string PhotoUrl { get; set; }
+
+        public virtual ICollection<ChargingTransaction> ChargingTransactions { get; set; } = new List<ChargingTransaction>();
+    }
+}
+
